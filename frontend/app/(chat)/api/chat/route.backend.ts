@@ -10,11 +10,9 @@
  * 3. Set BACKEND_API_KEY in environment variables
  */
 
-import { createUIMessageStream, JsonToSseTransformStream } from "ai";
 import { auth } from "@/app/(auth)/auth";
 import { createBackendClient } from "@/lib/backend-client";
 import { ChatSDKError } from "@/lib/errors";
-import type { ChatMessage } from "@/lib/types";
 
 export const maxDuration = 60;
 
@@ -45,58 +43,37 @@ export async function POST(request: Request) {
       visibility: selectedVisibilityType,
     };
 
-    // Create UI message stream and transform backend events
-    const stream = createUIMessageStream<ChatMessage>({
-      execute: async ({ writer: dataStream }) => {
-        let assistantMessageId: string | undefined;
+    // Create streaming response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
         try {
+          // Stream from Python backend
           for await (const chunk of backendClient.streamChat(chatRequest)) {
-            if (chunk.type === "message-start") {
-              // Store message ID and write text-start
-              assistantMessageId = chunk.id;
-              dataStream.write({
-                type: "text-start",
-                id: chunk.id,
-              });
-            } else if (chunk.type === "text-delta") {
-              // Write text delta with message ID
-              if (assistantMessageId) {
-                dataStream.write({
-                  type: "text-delta",
-                  id: assistantMessageId,
-                  delta: chunk.content,
-                });
-              }
-            } else if (chunk.type === "message-finish") {
-              // Write text-end and finish
-              if (assistantMessageId) {
-                dataStream.write({
-                  type: "text-end",
-                  id: assistantMessageId,
-                });
-              }
-              dataStream.write({
-                type: "finish",
-              });
-            } else if (chunk.type === "error") {
-              // Write error
-              dataStream.write({
-                type: "error",
-                error: chunk.error || "Unknown error",
-              });
-            }
+            // Forward SSE events to client
+            const data = `data: ${JSON.stringify(chunk)}\n\n`;
+            controller.enqueue(encoder.encode(data));
           }
         } catch (error) {
-          console.error("Backend stream error:", error);
-          dataStream.write({
+          console.error("Streaming error:", error);
+          const errorData = {
             type: "error",
             error: error instanceof Error ? error.message : "Unknown error",
-          });
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`));
+        } finally {
+          controller.close();
         }
       },
     });
 
-    return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
   } catch (error) {
     if (error instanceof ChatSDKError) {
       return error.toResponse();

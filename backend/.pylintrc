@@ -1,0 +1,62 @@
+[MASTER]
+# Use multiple processes to speed up Pylint
+jobs=0
+
+# Pickle collected data for later comparisons
+persistent=yes
+
+# Minimum Python version to use for checking
+py-version=3.9
+
+[MESSAGES CONTROL]
+# Disable certain warnings
+disable=
+    C0111,  # missing-docstring
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    W0212,  # protected-access
+    C0103,  # invalid-name
+    R0801,  # duplicate-code
+    W0511,  # fixme
+    R0914,  # too-many-locals
+    R0915,  # too-many-statements
+
+[REPORTS]
+# Set the output format
+output-format=colorized
+
+# Tells whether to display a full report
+reports=no
+
+# Python expression to evaluate and get a score
+evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
+
+[BASIC]
+# Good variable names
+good-names=i,j,k,ex,_,id,db,app
+
+# Regular expression for constant naming
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=100
+
+# Maximum number of lines in a module
+max-module-lines=1000
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=10
+
+# Maximum number of attributes for a class
+max-attributes=15
+
+[IMPORTS]
+# Deprecated modules which should not be used
+deprecated-modules=optparse
+
+[EXCEPTIONS]
+# Exceptions that will emit a warning when caught
+overgeneral-exceptions=builtins.Exception
+

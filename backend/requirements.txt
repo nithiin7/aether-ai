@@ -1,0 +1,33 @@
+# Core Framework
+Flask==3.0.3
+Flask-CORS==4.0.1
+Werkzeug==3.0.3
+
+# Database
+SQLAlchemy==2.0.31
+psycopg2-binary==2.9.9
+alembic==1.13.2
+
+# LangChain & AI
+langchain==0.2.16
+langchain-community==0.2.16
+langchain-core==0.2.38
+
+# Ollama
+ollama==0.3.3
+
+# Environment & Config
+python-dotenv==1.0.1
+pydantic==2.8.2
+pydantic-settings==2.4.0
+
+# Validation & Serialization
+marshmallow==3.22.0
+
+# HTTP & Networking
+requests==2.32.3
+
+# Utilities
+python-dateutil==2.9.0
+PyJWT==2.9.0
+
